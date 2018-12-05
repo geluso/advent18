@@ -57,7 +57,6 @@ function tally_sleeping_times(records)
   last_sleeping = false
 
   for record in records
-    println(record)
     next_time = record.datetime
 
     # assume the sleeping state and guard state don't change
@@ -76,9 +75,6 @@ function tally_sleeping_times(records)
       total = get(tally, last_guard, 0)
       total += slept
       tally[last_guard] = total
-
-      println("slept: ", slept)
-      println("total ", last_guard, ": ", total)
     end
     
     last_time = next_time
@@ -86,6 +82,39 @@ function tally_sleeping_times(records)
     last_sleeping = next_sleeping
   end
   return tally
+end
+
+function extract_sleep_records(id, records)
+  sleeps = []
+  current_guard = records[1].info.guard_id
+
+  for record in records
+    if current_guard == id && typeof(record.info) == SleepRecord
+      push!(sleeps, record)
+    elseif typeof(record.info) == ShiftRecord
+      current_guard = record.info.guard_id
+    end
+  end
+
+  return sleeps
+end
+
+function tally_minutes(records)
+  minutes = Dict()
+
+  for pair in partition(records, 2)
+    sleep, wake = pair
+    sleep = Dates.value(Dates.Minute(sleep.datetime))
+    wake = Dates.value(Dates.Minute(wake.datetime)) - 1
+
+    for minute in sleep:wake
+      count = get(minutes, minute, 0)
+      count += 1
+      minutes[minute] = count
+    end
+  end
+
+  return findmax(minutes)[2]
 end
 
 open(ARGS[1]) do file
@@ -97,5 +126,11 @@ open(ARGS[1]) do file
 
   println("id: ", id)
   println("total: ", total)
+
+  sleep_records = extract_sleep_records(id, records)
+  most_common_minute = tally_minutes(sleep_records)
+
+  println("most common minute: ", most_common_minute)
+  println("multiplied: ", id * most_common_minute)
 end
 

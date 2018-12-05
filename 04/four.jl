@@ -147,16 +147,23 @@ open(ARGS[1]) do file
   println("id: ", id)
   println("total: ", total)
 
-  sleep_records = extract_sleep_records(id, records)
-  tallied_minutes = tally_minutes(sleep_records)
-  most_common_minute = findmax(tallied_minutes)[2]
+  most_minutes = nothing
+  most_minute = nothing
+  most_guard = nothing
 
-  shifts = num_shifts(records, id)
-  println("shifts: ", shifts)
+  for guard_id in keys(tally)
+    sleep_records = extract_sleep_records(guard_id, records)
+    tallied_minutes = tally_minutes(sleep_records)
 
-  println("most common minute: ", most_common_minute)
-  println("multiplied: ", id * most_common_minute)
+    count, most_common_minute = findmax(tallied_minutes)
+    if most_minutes == nothing || count > most_minutes
+      most_minutes = count
+      most_minute = most_common_minute
+      most_guard = guard_id
+      println("most minutes: ", most_minutes, " most minute: ", most_minute, " ", most_guard)
+    end
+  end
 
-  minute_percentage(tallied_minutes, shifts)
+  println("mult: ", most_guard * most_minute)
 end
 

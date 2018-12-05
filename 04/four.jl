@@ -114,8 +114,28 @@ function tally_minutes(records)
     end
   end
 
-  return findmax(minutes)[2]
+  return minutes
 end
+
+function num_shifts(records, id)
+  is_shift = rr -> typeof(rr.info) == ShiftRecord && rr.info.guard_id == id
+  return length(filter(is_shift, records))
+end
+
+function minute_percentage(tallied_minutes, shifts)
+  percentage = Dict()
+
+  for entry in collect(tallied_minutes)
+    min, count = entry
+    percentage[min] = count / shifts
+  end
+
+  pps = collect(percentage)
+  println(sort(pps, by=kv->kv[2]))
+  max = findmax(percentage)
+  println(max)
+end
+
 
 open(ARGS[1]) do file
   records = map(process_line, eachline(file))
@@ -128,9 +148,15 @@ open(ARGS[1]) do file
   println("total: ", total)
 
   sleep_records = extract_sleep_records(id, records)
-  most_common_minute = tally_minutes(sleep_records)
+  tallied_minutes = tally_minutes(sleep_records)
+  most_common_minute = findmax(tallied_minutes)[2]
+
+  shifts = num_shifts(records, id)
+  println("shifts: ", shifts)
 
   println("most common minute: ", most_common_minute)
   println("multiplied: ", id * most_common_minute)
+
+  minute_percentage(tallied_minutes, shifts)
 end
 

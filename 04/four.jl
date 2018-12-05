@@ -11,7 +11,7 @@ struct ShiftRecord
 end
 
 struct SleepRecord
-  is_asleep::Bool
+  is_sleeping::Bool
 end
 
 function timestamp_to_datetime(date, time)
@@ -49,12 +49,53 @@ function process_line(line)
   return record
 end
 
+function tally_sleeping_times(records)
+  tally = Dict()
+
+  last_time = records[1].datetime
+  last_guard = records[1].info.guard_id
+  last_sleeping = false
+
+  for record in records
+    println(record)
+    next_time = record.datetime
+
+    # assume the sleeping state and guard state don't change
+    next_sleeping = last_sleeping
+    next_guard = last_guard
+
+    if typeof(record.info) == ShiftRecord
+      next_guard = record.info.guard_id
+    elseif typeof(record.info) == SleepRecord
+      next_sleeping = record.info.is_sleeping
+    end
+
+    # guard woke up
+    if last_sleeping && !next_sleeping
+      slept = Dates.value(Dates.Minute(next_time - last_time))
+      total = get(tally, last_guard, 0)
+      total += slept
+      tally[last_guard] = total
+
+      println("slept: ", slept)
+      println("total ", last_guard, ": ", total)
+    end
+    
+    last_time = next_time
+    last_guard = next_guard
+    last_sleeping = next_sleeping
+  end
+  return tally
+end
+
 open(ARGS[1]) do file
   records = map(process_line, eachline(file))
   sort!(records, by=record -> record.datetime)
 
-  for record in records
-    println(record)
-  end
+  tally = tally_sleeping_times(records)
+  total, id = findmax(tally)
+
+  println("id: ", id)
+  println("total: ", total)
 end
 

@@ -33,7 +33,10 @@ open(ARGS[1]) do file
   println("min: ", minx, " ", miny)
   println("max: ", maxx, " ", maxy)
 
+  n = -1
+
   function tick(points)
+    n = n + 1
     dots = Dict()
     minx, miny = points[1].px, points[1].py
     maxx, maxy = points[1].px, points[1].py
@@ -52,7 +55,7 @@ open(ARGS[1]) do file
     dx = maxx - minx
     dy = maxy - miny
     score = dx + dy
-    println(score)
+    println(n, " ", score)
 
     is_drawing = false
     if score > 100

@@ -35,6 +35,8 @@ open(ARGS[1]) do file
 
   function tick(points)
     dots = Dict()
+    minx, miny = points[1].px, points[1].py
+    maxx, maxy = points[1].px, points[1].py
     for point in points
       key = string(point.px, ",", point.py)
       dots[key] = true
@@ -47,9 +49,20 @@ open(ARGS[1]) do file
       maxy = maximum([maxy, point.py])
     end
 
-    for xx in minx:maxx
-      for yy in miny:maxy
-        key = string(xx, ",", yy)
+    dx = maxx - minx
+    dy = maxy - miny
+    score = dx + dy
+    println(score)
+
+    is_drawing = false
+    if score > 100
+      return
+    end
+    readline(stdin)
+
+    for xx in 0:(maxx - minx)
+      for yy in 0:(maxy - miny)
+        key = string(minx + xx, ",", miny + yy)
         if get(dots, key, false)
           print("#")
         else
@@ -62,7 +75,6 @@ open(ARGS[1]) do file
 
   while true
     tick(points)
-    readline(stdin)
   end
 end
 

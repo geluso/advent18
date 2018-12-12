@@ -1,5 +1,8 @@
+ALPHABET = "ABCDEF"
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+TIME_PER_JOB = 0
 TIME_PER_JOB = 60
+MAX_WORKERS = 2
 MAX_WORKERS = 5
 
 mutable struct Task
@@ -76,10 +79,7 @@ function main()
   working = []
   complete = []
 
-  while length(complete) < 26
-    println("working:", length(working))
-    println("complete:", length(complete), " ", join(complete,""))
-
+  while length(complete) < length(ALPHABET)
     searching = true
     index = 1
     while searching
@@ -98,12 +98,12 @@ function main()
         if !is_task_working && !is_task_complete
           prereqs = get(relies_on, task, [])
           complete_prereqs = filter(el -> el in complete, prereqs)
-          println(typeof(task), " ", task, " prereqs: ", prereqs, complete_prereqs)
+          #println(typeof(task), " ", task, " prereqs: ", prereqs, complete_prereqs)
           
           if length(prereqs) == length(complete_prereqs)
             cost = get_cost(task)
             task = Task(0, cost, task)
-            println("assigned ", task, " @ ", cost)
+            #println("assigned ", task, " @ ", cost)
 
             has_begun[task.task] = true
             push!(working, task)
@@ -124,6 +124,7 @@ function main()
     end
 
     seconds_spent += 1
+    println(seconds_spent, " complete:", join(working, ""), join(complete,""))
   end
   println("total time: ", seconds_spent)
 end

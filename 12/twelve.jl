@@ -11,9 +11,8 @@ function print_row(pots)
     end
     result = string(result, get(pots, i, "."))
   end
-  println(index)
-  println(result)
-  println()
+  
+  return result
 end
 
 function get_llcrr(pots, index)
@@ -49,12 +48,16 @@ open(ARGS[1]) do file
     row[index - 1] = current[index]
   end
 
-  generations = 50000000000
-  generations = 20
-  for index in 1:generations
-    if index % 100000 == 0
-      println(index)
-    end
+  seen_rows = Dict()
+  stable_pattern = nothing
+  zero_index = 0
+
+  generation = 0
+  max_generations = 20
+  max_generations = 50000000000
+  while generation < max_generations && stable_pattern == nothing
+    generation += 1
+
     next = Dict()
     minn = minimum(row)[1] - 4
     maxx = maximum(row)[1] + 4
@@ -64,16 +67,42 @@ open(ARGS[1]) do file
     end
     row = next
 
-    #println(index, " ", minn, " ", maxx)
-    #print_row(row)
+    result = print_row(row)
+
+    start = findfirst("#", result)[1]
+    finish = findlast("#", result)[1]
+    trimmed = result[start:finish]
+    println(trimmed, " ", start, " ", generation)
+
+    if get(seen_rows, trimmed, false)
+      stable_pattern = trimmed
+    end
+    seen_rows[trimmed] = true
   end
 
-  total = 0
+  # determine row positions
+  positions = []
   for kv in row
     position, char = kv
     if char == '#' || char == "#"
-      total += position
+      println(position)
+      push!(positions, position)
     end
   end
+  sort!(positions)
+  println(positions)
+  println(positions[1])
+  zero_index = positions[1]
+
+  left = max_generations - generation
+  zero_index *= 5 * left
+  println(left)
+  println("zero_index ", zero_index)
+
+  total = 0
+  for pos in positions
+    total += pos + zero_index - 47
+  end
+
   println(total)
 end

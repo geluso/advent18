@@ -49,13 +49,16 @@ open(ARGS[1]) do file
   end
 
   seen_rows = Dict()
-  stable_pattern = nothing
   zero_index = 0
 
   generation = 0
   max_generations = 20
   max_generations = 50000000000
-  while generation < max_generations && stable_pattern == nothing
+
+  last_total = 0
+  diff = 0
+  found_repeat = false
+  while !found_repeat
     generation += 1
 
     next = Dict()
@@ -72,37 +75,29 @@ open(ARGS[1]) do file
     start = findfirst("#", result)[1]
     finish = findlast("#", result)[1]
     trimmed = result[start:finish]
-    println(trimmed, " ", start, " ", generation)
+    #println(trimmed, " ", start, " ", generation)
+
+    total = 0
+    minn = minimum(row)[1]
+    maxx = maximum(row)[1]
+    for index in minn:maxx
+      got = get(row, index, ".")
+      if got == '#' || got == "#"
+        total += index
+      end
+    end
+
+    diff = total - last_total
+    println("gen: ", generation, " total: ", total, " diff: ", total - last_total)
+    last_total = total
 
     if get(seen_rows, trimmed, false)
-      stable_pattern = trimmed
+      found_repeat = true
     end
     seen_rows[trimmed] = true
   end
 
-  # determine row positions
-  positions = []
-  for kv in row
-    position, char = kv
-    if char == '#' || char == "#"
-      println(position)
-      push!(positions, position)
-    end
-  end
-  sort!(positions)
-  println(positions)
-  println(positions[1])
-  zero_index = positions[1]
-
   left = max_generations - generation
-  zero_index *= 5 * left
-  println(left)
-  println("zero_index ", zero_index)
-
-  total = 0
-  for pos in positions
-    total += pos + zero_index - 47
-  end
-
-  println(total)
+  result = last_total + diff * left
+  println(result)
 end

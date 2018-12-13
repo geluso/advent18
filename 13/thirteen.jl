@@ -8,6 +8,7 @@ end
 mutable struct Cart
   coord
   facing
+  id
   turns
 end
 
@@ -29,7 +30,7 @@ struct RelativeWorld
   right
 end
 
-Cart(coord, facing) = Cart(coord, facing, 0)
+Cart(coord, facing, id) = Cart(coord, facing, id, 0)
 
 function main()
   CARTS = "<>^v"
@@ -116,15 +117,26 @@ function main()
     return show_carts_and_rails(key(coord))
   end
 
-  function print_grid(lookup_func)
-    for row in 0:max_row
+  function print_grid(lookup_func, coord=nothing)
+    row_range = 0:max_row
+    col_range = 0:max_col
+    if coord != nothing
+      row_range = (coord.row - 2:coord.row + 2)
+      col_range = (coord.col - 2:coord.col + 2)
+    end
+
+
+    for row in row_range
       line = ""
-      for col in 0:max_col
+      for col in col_range
         kk = key(row, col)
         cc = lookup_func(kk)
         line = string(line, cc)
       end
+      println(line)
     end
+
+    println()
   end
 
   print_grid() = print_grid(show_rails)
@@ -155,16 +167,16 @@ function main()
   function collide(coord, other)
     delete!(carts, key(coord))
     delete!(carts, key(other))
-    println("collision!", length(carts))
+    println("collision!")
 
-    if length(carts) <= 1
+    if length(carts) == 1
       println(carts)
-      exit()
     end
   end
 
   function move_up(cart, forced=false)
     around = relative_rail(cart.coord)
+    println("up: ", around.top)
     if around.top in CARTS
       collide(cart.coord, relative_dir(cart.coord).top)
     elseif around.center == '\\' && !forced
@@ -176,12 +188,15 @@ function main()
     elseif around.top in "|/\\+"
       cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
     else
+      print_grid(show_carts_and_rails, cart.coord)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id)
       exit()
     end
   end
 
   function move_down(cart, forced=false)
     around = relative_rail(cart.coord)
+    println("down: ", around.bot)
     if around.bot in CARTS
       collide(cart.coord, relative_dir(cart.coord).bot)
     elseif around.center == '/' && !forced
@@ -193,12 +208,15 @@ function main()
     elseif around.bot in "|/\\+"
       cart.coord = Coord(cart.coord.row + 1, cart.coord.col)
     else
+      print_grid(show_carts_and_rails, cart.coord)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id)
       exit()
     end
   end
 
   function move_left(cart, forced=false)
     around = relative_rail(cart.coord)
+    println("left: ", around.left)
     if around.left in CARTS
       collide(cart.coord, relative_dir(cart.coord).left)
     elseif around.center == '\\' && !forced
@@ -210,12 +228,15 @@ function main()
     elseif around.left in "-\\/+"
       cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
     else
+      print_grid(show_carts_and_rails, cart.coord)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id)
       exit()
     end
   end
 
   function move_right(cart, forced=false)
     around = relative_rail(cart.coord)
+    println("right: ", around.right)
     if around.right in CARTS
       collide(cart.coord, relative_dir(cart.coord).right)
     elseif around.center == '/' && !forced
@@ -227,11 +248,14 @@ function main()
     elseif around.right in "-\\/+"
       cart.coord = Coord(cart.coord.row, cart.coord.col + 1)
     else
+      print_grid(show_carts_and_rails, cart.coord)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id)
       exit()
     end
   end
 
   function move_cart(cart)
+    println("cart: ", cart)
     delete!(carts, key(cart))
 
     around = relative_rail(cart.coord)
@@ -258,6 +282,7 @@ function main()
 
   function tick()
     ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
+    println("ordered carts: ", ordered_carts)
     for cart in ordered_carts
       move_cart(cart)
     end
@@ -269,6 +294,7 @@ function main()
   max_col = 0
   patch_spots = []
 
+  id = 0
   open(ARGS[1]) do file
     row = 0
     for line in eachline(file)
@@ -276,10 +302,9 @@ function main()
       for letter in line
         kk = key(row, col)
         if letter in CARTS
-          rails[kk] = '?'
-
           coord = Coord(row, col)
-          cart = Cart(coord, letter, 0)
+          cart = Cart(coord, letter, id, 0)
+          id += 1
 
           push!(patch_spots, coord)
           carts[key(cart)] = cart
@@ -304,7 +329,7 @@ function main()
 
   while true
     tick()
-    print_grid(show_carts_and_rails)
+    #print_grid(show_carts_and_rails)
   end
 end
 

@@ -32,7 +32,20 @@ end
 Cart(coord, facing) = Cart(coord, facing, 0)
 
 function main()
-  CARS = "<>^v"
+  CARTS = "<>^v"
+
+  LEFT_TURNS = Dict()
+  LEFT_TURNS['^'] = '<'
+  LEFT_TURNS['<'] = 'V'
+  LEFT_TURNS['v'] = '>'
+  LEFT_TURNS['>'] = '^'
+
+  RIGHT_TURNS = Dict()
+  RIGHT_TURNS['^'] = '>'
+  RIGHT_TURNS['>'] = 'V'
+  RIGHT_TURNS['V'] = '<'
+  RIGHT_TURNS['<'] = '^'
+
 
   function key(row::Int, col::Int)
     return string(row, ",", col)
@@ -46,9 +59,24 @@ function main()
     return key(cart.coord)
   end
 
-  function turn(cart)
+  function turn_cart(cart)
     turns = ["left", "straight", "right"]
     turn_to_take = turns[cart.turns % length(turns)]
+    cart.turns += 1
+
+    if turn_to_take == "left"
+      turn_left(cart)
+    elseif turn_to_take == "right"
+      turn_right(cart)
+    end
+  end
+
+  function turn_left(cart)
+    cart.facing = get(LEFT_TURNS, facing, facing)
+  end
+
+  function turn_right(cart)
+    cart.facing = get(RIGHT_TURNS, facing, facing)
   end
 
   function relative_dir(center::Coord)
@@ -72,7 +100,7 @@ function main()
   end
 
   function show_rails(kk::String)
-    return get(rails, kk, " ")
+    return get(rails, kk, ' ')
   end
 
   function show_carts_and_rails(kk::String)
@@ -125,8 +153,65 @@ function main()
     end
   end
 
+  function move_up(cart)
+    around = relative_rail(cart.coord)
+    println("up: ", around.up)
+    if around.up in CARTS
+      println("COLISSION")
+      exit()
+    elseif around.up in "|/\\"
+      cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
+    end
+  end
+
+  function move_down(cart)
+    around = relative_rail(cart.coord)
+    println("down: ", around.bot)
+    if around.bot in CARTS
+      println("COLISSION")
+      exit()
+    elseif around.bot in "|/\\"
+      cart.coord = Coord(cart.coord.row + 1, cart.coord.col)
+    end
+  end
+
+  function move_left(cart)
+    around = relative_rail(cart.coord)
+    println("left: ", around.left)
+    if around.left in CARTS
+      println("COLISSION")
+      exit()
+    elseif around.left in "-\\/"
+      cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
+    end
+  end
+
+  function move_right(cart)
+    around = relative_rail(cart.coord)
+    println("right: ", around.right)
+    if around.right in CARTS
+      println("COLISSION")
+      exit()
+    elseif around.right in "-\\/"
+      cart.coord = Coord(cart.coord.row, cart.coord.col + 1)
+    end
+  end
+
   function move_cart(cart)
-    
+    println("cart: ", cart)
+    delete!(carts, key(cart))
+
+    if cart.facing == '^'
+      move_up(cart)
+    elseif cart.facing == 'v'
+      move_down(cart)
+    elseif cart.facing == '<'
+      move_left(cart)
+    elseif cart.facing == '>'
+      move_right(cart)
+    end
+
+    carts[key(cart)] = cart
   end
 
   function is_cart_less(cart1::Cart, cart2::Cart)
@@ -135,7 +220,8 @@ function main()
 
   function tick()
     ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
-    for cart in carts
+    println("ordered carts: ", ordered_carts)
+    for cart in ordered_carts
       move_cart(cart)
     end
   end
@@ -152,7 +238,7 @@ function main()
       col = 0
       for letter in line
         kk = key(row, col)
-        if letter in CARS
+        if letter in CARTS
           rails[kk] = '?'
 
           coord = Coord(row, col)
@@ -180,6 +266,22 @@ function main()
   print_grid(show_carts_and_rails)
 
   tick()
+  print_grid(show_carts_and_rails)
+
+  tick()
+  print_grid(show_carts_and_rails)
+
+  tick()
+  print_grid(show_carts_and_rails)
+
+  tick()
+  print_grid(show_carts_and_rails)
+
+  tick()
+  print_grid(show_carts_and_rails)
+
+  tick()
+  print_grid(show_carts_and_rails)
 end
 
 main()

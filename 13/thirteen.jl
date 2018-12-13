@@ -121,8 +121,8 @@ function main()
     row_range = 0:max_row
     col_range = 0:max_col
     if coord != nothing
-      row_range = (coord.row - 2:coord.row + 2)
-      col_range = (coord.col - 2:coord.col + 2)
+      row_range = (coord.row - 4:coord.row + 4)
+      col_range = (coord.col - 4:coord.col + 4)
     end
 
 
@@ -164,21 +164,25 @@ function main()
     end
   end
 
-  function collide(coord, other)
-    delete!(carts, key(coord))
-    delete!(carts, key(other))
-    println("collision!")
+  function collide(cart, other)
+    d1 = delete!(carts, key(cart))
+    d2 = delete!(carts, key(other))
+    println("collision! ", "coord: ", cart, " other: ", other)
 
+    push!(dead_carts, cart)
+    push!(dead_carts, other)
+
+    println(length(carts))
     if length(carts) == 1
       println(carts)
+      exit()
     end
   end
 
   function move_up(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("up: ", around.top)
     if around.top in CARTS
-      collide(cart.coord, relative_dir(cart.coord).top)
+      collide(cart, get(carts, key(relative_dir(cart.coord).top), nothing))
     elseif around.center == '\\' && !forced
       cart.facing = '<'
       move_left(cart, true)
@@ -189,16 +193,15 @@ function main()
       cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
     else
       print_grid(show_carts_and_rails, cart.coord)
-      println("ERROR up ", around, " ", forced, " id: ", cart.id)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id, " cart: ", cart)
       exit()
     end
   end
 
   function move_down(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("down: ", around.bot)
     if around.bot in CARTS
-      collide(cart.coord, relative_dir(cart.coord).bot)
+      collide(cart, get(carts, key(relative_dir(cart.coord).bot), nothing))
     elseif around.center == '/' && !forced
       cart.facing = '<'
       move_left(cart, true)
@@ -209,16 +212,16 @@ function main()
       cart.coord = Coord(cart.coord.row + 1, cart.coord.col)
     else
       print_grid(show_carts_and_rails, cart.coord)
-      println("ERROR up ", around, " ", forced, " id: ", cart.id)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id, " cart: ", cart)
       exit()
     end
   end
 
   function move_left(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("left: ", around.left)
     if around.left in CARTS
-      collide(cart.coord, relative_dir(cart.coord).left)
+      collide(cart, get(carts, key(relative_dir(cart.coord).left), nothing))
+      collide(cart.coord, relative_dir(cart.coord).bot)
     elseif around.center == '\\' && !forced
       cart.facing = '^'
       move_up(cart, true)
@@ -229,16 +232,15 @@ function main()
       cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
     else
       print_grid(show_carts_and_rails, cart.coord)
-      println("ERROR up ", around, " ", forced, " id: ", cart.id)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id, " cart: ", cart)
       exit()
     end
   end
 
   function move_right(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("right: ", around.right)
     if around.right in CARTS
-      collide(cart.coord, relative_dir(cart.coord).right)
+      collide(cart, get(carts, key(relative_dir(cart.coord).right), nothing))
     elseif around.center == '/' && !forced
       cart.facing = '^'
       move_up(cart, true)
@@ -249,13 +251,20 @@ function main()
       cart.coord = Coord(cart.coord.row, cart.coord.col + 1)
     else
       print_grid(show_carts_and_rails, cart.coord)
-      println("ERROR up ", around, " ", forced, " id: ", cart.id)
+      println("ERROR up ", around, " ", forced, " id: ", cart.id, " cart: ", cart)
       exit()
     end
   end
 
   function move_cart(cart)
-    println("cart: ", cart)
+    if get(carts, key(cart), nothing) == nothing
+      println("trying to move cart that doesn't exist anymore ", cart.id)
+      return
+    end
+
+    if cart.id == 6
+      print_grid(show_carts_and_rails, cart.coord)
+    end
     delete!(carts, key(cart))
 
     around = relative_rail(cart.coord)
@@ -273,7 +282,9 @@ function main()
       move_right(cart)
     end
 
-    carts[key(cart)] = cart
+    if !(cart in dead_carts)
+      carts[key(cart)] = cart
+    end
   end
 
   function is_cart_less(cart1::Cart, cart2::Cart)
@@ -282,7 +293,6 @@ function main()
 
   function tick()
     ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
-    println("ordered carts: ", ordered_carts)
     for cart in ordered_carts
       move_cart(cart)
     end
@@ -290,6 +300,7 @@ function main()
 
   rails = Dict()
   carts = Dict()
+  dead_carts = Set()
   max_row = 0
   max_col = 0
   patch_spots = []
@@ -321,15 +332,13 @@ function main()
     end
   end
 
-  print_grid(show_rails)
   patch_rail(patch_spots)
 
-  print_grid(show_rails)
-  print_grid(show_carts_and_rails)
+  #print_grid(show_rails)
+  #print_grid(show_carts_and_rails)
 
   while true
     tick()
-    #print_grid(show_carts_and_rails)
   end
 end
 

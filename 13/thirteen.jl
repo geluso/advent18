@@ -153,12 +153,22 @@ function main()
     end
   end
 
+  function collide(coord, other)
+    delete!(carts, key(coord))
+    delete!(carts, key(other))
+    println("collision!")
+
+    if length(carts) <= 1
+      println(carts)
+      exit()
+    end
+  end
+
   function move_up(cart, forced=false)
     around = relative_rail(cart.coord)
     println("up: ", around.top)
     if around.top in CARTS
-      println("COLISSION!", relative_dir(cart.coord).top)
-      exit()
+      collide(cart.coord, relative_dir(cart.coord).top)
     elseif around.center == '\\' && !forced
       cart.facing = '<'
       move_left(cart, true)
@@ -177,8 +187,7 @@ function main()
     around = relative_rail(cart.coord)
     println("down: ", around.bot)
     if around.bot in CARTS
-      println("COLISSION!", relative_dir(cart.coord).bot)
-      exit()
+      collide(cart.coord, relative_dir(cart.coord).bot)
     elseif around.center == '/' && !forced
       cart.facing = '<'
       move_left(cart, true)
@@ -197,8 +206,7 @@ function main()
     around = relative_rail(cart.coord)
     println("left: ", around.left)
     if around.left in CARTS
-      println("COLISSION!", relative_dir(cart.coord).left)
-      exit()
+      collide(cart.coord, relative_dir(cart.coord).left)
     elseif around.center == '\\' && !forced
       cart.facing = '^'
       move_up(cart, true)
@@ -217,8 +225,7 @@ function main()
     around = relative_rail(cart.coord)
     println("right: ", around.right)
     if around.right in CARTS
-      println("COLISSION!", relative_dir(cart.coord).right)
-      exit()
+      collide(cart.coord, relative_dir(cart.coord).right)
     elseif around.center == '/' && !forced
       cart.facing = '^'
       move_up(cart, true)

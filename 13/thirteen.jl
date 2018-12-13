@@ -258,13 +258,9 @@ function main()
 
   function move_cart(cart)
     if get(carts, key(cart), nothing) == nothing
-      println("trying to move cart that doesn't exist anymore ", cart.id)
       return
     end
 
-    if cart.id == 6
-      print_grid(show_carts_and_rails, cart.coord)
-    end
     delete!(carts, key(cart))
 
     around = relative_rail(cart.coord)

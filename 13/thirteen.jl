@@ -36,14 +36,14 @@ function main()
 
   LEFT_TURNS = Dict()
   LEFT_TURNS['^'] = '<'
-  LEFT_TURNS['<'] = 'V'
+  LEFT_TURNS['<'] = 'v'
   LEFT_TURNS['v'] = '>'
   LEFT_TURNS['>'] = '^'
 
   RIGHT_TURNS = Dict()
   RIGHT_TURNS['^'] = '>'
-  RIGHT_TURNS['>'] = 'V'
-  RIGHT_TURNS['V'] = '<'
+  RIGHT_TURNS['>'] = 'v'
+  RIGHT_TURNS['v'] = '<'
   RIGHT_TURNS['<'] = '^'
 
 
@@ -157,7 +157,7 @@ function main()
     around = relative_rail(cart.coord)
     println("up: ", around.top)
     if around.top in CARTS
-      println("COLISSION")
+      println("COLISSION!", relative_dir(cart.coord).top)
       exit()
     elseif around.center == '\\' && !forced
       cart.facing = '<'
@@ -177,7 +177,7 @@ function main()
     around = relative_rail(cart.coord)
     println("down: ", around.bot)
     if around.bot in CARTS
-      println("COLISSION")
+      println("COLISSION!", relative_dir(cart.coord).bot)
       exit()
     elseif around.center == '/' && !forced
       cart.facing = '<'
@@ -197,7 +197,7 @@ function main()
     around = relative_rail(cart.coord)
     println("left: ", around.left)
     if around.left in CARTS
-      println("COLISSION")
+      println("COLISSION!", relative_dir(cart.coord).left)
       exit()
     elseif around.center == '\\' && !forced
       cart.facing = '^'
@@ -217,7 +217,7 @@ function main()
     around = relative_rail(cart.coord)
     println("right: ", around.right)
     if around.right in CARTS
-      println("COLISSION")
+      println("COLISSION!", relative_dir(cart.coord).right)
       exit()
     elseif around.center == '/' && !forced
       cart.facing = '^'
@@ -306,7 +306,7 @@ function main()
   print_grid(show_rails)
   print_grid(show_carts_and_rails)
 
-  for i in 1:10
+  while true
     tick()
     print_grid(show_carts_and_rails)
   end

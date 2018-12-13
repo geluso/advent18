@@ -124,7 +124,6 @@ function main()
         cc = lookup_func(kk)
         line = string(line, cc)
       end
-      println(line)
     end
   end
 
@@ -156,7 +155,7 @@ function main()
   function collide(coord, other)
     delete!(carts, key(coord))
     delete!(carts, key(other))
-    println("collision!")
+    println("collision!", length(carts))
 
     if length(carts) <= 1
       println(carts)
@@ -166,7 +165,6 @@ function main()
 
   function move_up(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("up: ", around.top)
     if around.top in CARTS
       collide(cart.coord, relative_dir(cart.coord).top)
     elseif around.center == '\\' && !forced
@@ -178,14 +176,12 @@ function main()
     elseif around.top in "|/\\+"
       cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
     else
-      println("ERROR")
       exit()
     end
   end
 
   function move_down(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("down: ", around.bot)
     if around.bot in CARTS
       collide(cart.coord, relative_dir(cart.coord).bot)
     elseif around.center == '/' && !forced
@@ -197,14 +193,12 @@ function main()
     elseif around.bot in "|/\\+"
       cart.coord = Coord(cart.coord.row + 1, cart.coord.col)
     else
-      println("ERROR ")
       exit()
     end
   end
 
   function move_left(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("left: ", around.left)
     if around.left in CARTS
       collide(cart.coord, relative_dir(cart.coord).left)
     elseif around.center == '\\' && !forced
@@ -216,14 +210,12 @@ function main()
     elseif around.left in "-\\/+"
       cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
     else
-      println("ERROR")
       exit()
     end
   end
 
   function move_right(cart, forced=false)
     around = relative_rail(cart.coord)
-    println("right: ", around.right)
     if around.right in CARTS
       collide(cart.coord, relative_dir(cart.coord).right)
     elseif around.center == '/' && !forced
@@ -235,13 +227,11 @@ function main()
     elseif around.right in "-\\/+"
       cart.coord = Coord(cart.coord.row, cart.coord.col + 1)
     else
-      println("ERROR")
       exit()
     end
   end
 
   function move_cart(cart)
-    println("cart: ", cart)
     delete!(carts, key(cart))
 
     around = relative_rail(cart.coord)
@@ -268,7 +258,6 @@ function main()
 
   function tick()
     ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
-    println("ordered carts: ", ordered_carts)
     for cart in ordered_carts
       move_cart(cart)
     end

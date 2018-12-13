@@ -88,6 +88,15 @@ function main()
     end
   end
 
+  function is_cart_less(cart1::Cart, cart2::Cart)
+    return isless(cart1.coord.row, cart2.coord.row) || isless(cart1.coord.col, cart2.coord.col)
+  end
+
+  function tick()
+    ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
+    println(ordered_carts)
+  end
+
   rails = Dict()
   carts = Dict()
   max_row = 0
@@ -126,6 +135,8 @@ function main()
 
   print_grid(show_rails)
   print_grid(show_carts_and_rails)
+
+  tick()
 end
 
 main()

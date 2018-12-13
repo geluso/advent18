@@ -159,6 +159,14 @@ function main()
     if around.up in CARTS
       println("COLISSION")
       exit()
+    elseif around.up == '+'
+
+    elseif around.center == '\\' && !forced
+      cart.facing = '<'
+      move_left(cart, true)
+    elseif around.center == '/' && !forced
+      cart.facing = '>'
+      move_right(cart, true)
     elseif around.up in "|/\\"
       cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
     else
@@ -173,6 +181,7 @@ function main()
     if around.bot in CARTS
       println("COLISSION")
       exit()
+    elseif around.bot == '+'
     elseif around.center == '/' && !forced
       cart.facing = '<'
       move_left(cart, true)
@@ -193,6 +202,13 @@ function main()
     if around.left in CARTS
       println("COLISSION")
       exit()
+    elseif around.left == '+'
+    elseif around.center == '\\' && !forced
+      cart.facing = '^'
+      move_up(cart, true)
+    elseif around.center == '/' && !forced
+      cart.facing = 'v'
+      move_down(cart, true)
     elseif around.left in "-\\/"
       cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
     else
@@ -207,6 +223,7 @@ function main()
     if around.right in CARTS
       println("COLISSION")
       exit()
+    elseif around.right == '+'
     elseif around.center == '/' && !forced
       cart.facing = '^'
       move_up(cart, true)

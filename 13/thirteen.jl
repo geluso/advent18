@@ -153,7 +153,7 @@ function main()
     end
   end
 
-  function move_up(cart)
+  function move_up(cart, forced=false)
     around = relative_rail(cart.coord)
     println("up: ", around.up)
     if around.up in CARTS
@@ -161,21 +161,33 @@ function main()
       exit()
     elseif around.up in "|/\\"
       cart.coord = Coord(cart.coord.row - 1, cart.coord.col)
+    else
+      println("ERROR")
+      exit()
     end
   end
 
-  function move_down(cart)
+  function move_down(cart, forced=false)
     around = relative_rail(cart.coord)
     println("down: ", around.bot)
     if around.bot in CARTS
       println("COLISSION")
       exit()
+    elseif around.center == '/' && !forced
+      cart.facing = '<'
+      move_left(cart, true)
+    elseif around.center == '\\' && !forced
+      cart.facing = '>'
+      move_right(cart, true)
     elseif around.bot in "|/\\"
       cart.coord = Coord(cart.coord.row + 1, cart.coord.col)
+    else
+      println("ERROR ")
+      exit()
     end
   end
 
-  function move_left(cart)
+  function move_left(cart, forced=false)
     around = relative_rail(cart.coord)
     println("left: ", around.left)
     if around.left in CARTS
@@ -183,17 +195,29 @@ function main()
       exit()
     elseif around.left in "-\\/"
       cart.coord = Coord(cart.coord.row, cart.coord.col - 1)
+    else
+      println("ERROR")
+      exit()
     end
   end
 
-  function move_right(cart)
+  function move_right(cart, forced=false)
     around = relative_rail(cart.coord)
     println("right: ", around.right)
     if around.right in CARTS
       println("COLISSION")
       exit()
+    elseif around.center == '/' && !forced
+      cart.facing = '^'
+      move_up(cart, true)
+    elseif around.center == '\\' && !forced
+      cart.facing = 'v'
+      move_down(cart, true)
     elseif around.right in "-\\/"
       cart.coord = Coord(cart.coord.row, cart.coord.col + 1)
+    else
+      println("ERROR")
+      exit()
     end
   end
 

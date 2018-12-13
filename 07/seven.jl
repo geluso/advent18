@@ -1,4 +1,3 @@
-ALPHABET = "ABCDEF"
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 TIME_PER_JOB = 0
 TIME_PER_JOB = 60
@@ -12,7 +11,6 @@ mutable struct Task
 end
 
 function is_complete(task::Task)
-  println("is_complete: ", task.time_spent, "/", task.time_required)
   return task.time_spent == task.time_required
 end
 
@@ -65,7 +63,7 @@ function main()
 
   println(complete)
 
-  for letter in ALPHABET
+  for letter in ALPHABET[1:length(all)]
     list = get(relies_on, letter, [])
     relies_on[letter] = list
     println(typeof(letter), " ", letter, " relies on ", list)
@@ -79,11 +77,40 @@ function main()
   working = []
   complete = []
 
-  while length(complete) < length(ALPHABET)
+  for task in all
+    prereqs = get(relies_on, task, [])
+    complete_prereqs = filter(el -> el in complete, prereqs)
+    
+    if length(prereqs) == length(complete_prereqs)
+      cost = get_cost(task)
+      task = Task(-1, cost, task)
+
+      has_begun[task.task] = true
+      push!(working, task)
+      filter!(el -> el != task, todo)
+    end
+  end
+
+  while length(complete) < length(ALPHABET[1:length(all)])
+    for task in working
+      task.time_spent += 1
+    end
+
+    for task in working
+      if is_complete(task)
+        #println("completed ", task)
+        push!(complete, task.task)
+        filter!(el -> el != task, working)
+        searching = true
+      end
+    end
+
     searching = true
     index = 1
     while searching
       if length(working) == MAX_WORKERS
+        searching = false
+      elseif index > length(all)
         searching = false
       elseif index > length(todo)
         searching = false
@@ -102,6 +129,7 @@ function main()
           
           if length(prereqs) == length(complete_prereqs)
             cost = get_cost(task)
+            #println("COST: ", task, cost)
             task = Task(0, cost, task)
             #println("assigned ", task, " @ ", cost)
 
@@ -112,21 +140,10 @@ function main()
         end
       end
     end
-
-    for task in working
-      task.time_spent += 1
-      if is_complete(task)
-        println("completed ", task)
-        push!(complete, task.task)
-        filter!(el -> el != task, working)
-        searching = true
-      end
-    end
-
+    println(seconds_spent, " working: ", join(map(j -> j.task, working), ""), " complete: ", join(complete,""))
     seconds_spent += 1
-    println(seconds_spent, " complete:", join(working, ""), join(complete,""))
   end
-  println("total time: ", seconds_spent)
+  println("total time: ", seconds_spent - 1)
 end
 
 main()

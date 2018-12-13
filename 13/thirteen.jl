@@ -11,15 +11,32 @@ mutable struct Cart
   turns
 end
 
-function string(oo::Cart)
-  println("ace")
-  return oo.facing
+# access to the coords around center
+struct RelativeCoords
+  center
+  top
+  bot
+  left
+  right
+end
+
+# access to characters in world around center
+struct RelativeWorld
+  center
+  top
+  bot
+  left
+  right
 end
 
 Cart(coord, facing) = Cart(coord, facing, 0)
 
 function main()
   CARS = "<>^v"
+
+  function key(row::Int, col::Int)
+    return string(row, ",", col)
+  end
 
   function key(coord::Coord)
     return key(coord.row, coord.col)
@@ -29,26 +46,46 @@ function main()
     return key(cart.coord)
   end
 
-  function key(row::Int, col::Int)
-    return string(row, ",", col)
-  end
-
   function turn(cart)
     turns = ["left", "straight", "right"]
     turn_to_take = turns[cart.turns % length(turns)]
   end
 
-  function show_rails(kk)
+  function relative_dir(center::Coord)
+    top = Coord(center.row - 1, center.col)
+    bot = Coord(center.row + 1, center.col)
+    left = Coord(center.row, center.col - 1)
+    right = Coord(center.row, center.col + 1)
+    return RelativeCoords(center, top, bot, left, right)
+  end
+
+  function relative_rail(center::Coord)
+    rel_dirs = relative_dir(center)
+
+    center = show_carts_and_rails(center)
+    top = show_carts_and_rails(rel_dirs.top)
+    bot = show_carts_and_rails(rel_dirs.bot)
+    left = show_carts_and_rails(rel_dirs.left)
+    right = show_carts_and_rails(rel_dirs.right)
+
+    return RelativeWorld(center, top, bot, left, right)
+  end
+
+  function show_rails(kk::String)
     return get(rails, kk, " ")
   end
 
-  function show_carts_and_rails(kk)
+  function show_carts_and_rails(kk::String)
     cart = get(carts, kk, nothing)
     if cart == nothing
       return show_rails(kk)
     else
       return cart.facing
     end
+  end
+
+  function show_carts_and_rails(coord::Coord)
+    return show_carts_and_rails(key(coord))
   end
 
   function print_grid(lookup_func)
@@ -88,13 +125,19 @@ function main()
     end
   end
 
+  function move_cart(cart)
+    
+  end
+
   function is_cart_less(cart1::Cart, cart2::Cart)
     return isless(cart1.coord.row, cart2.coord.row) || isless(cart1.coord.col, cart2.coord.col)
   end
 
   function tick()
     ordered_carts = sort(collect(values(carts)), lt=is_cart_less)
-    println(ordered_carts)
+    for cart in carts
+      move_cart(cart)
+    end
   end
 
   rails = Dict()

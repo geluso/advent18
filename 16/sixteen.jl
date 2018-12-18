@@ -76,10 +76,35 @@ function build_world(file)
   return world
 end
 
+function tick(world)
+  moved = false
+  for actor in collect(values(world.actors))
+    row, col = actor.row, actor.col
+    key_ = key(row, col)
+    if get_tile(world, row + 1, col) == '.'
+      delete!(world.actors, key_)
+      actor.row += 1
+      world.actors[key(row + 1, col)] = actor
+      moved = true
+    end
+  end
+  return moved
+end
+
 function main()
   open(ARGS[1]) do file
     world = build_world(file)
+
     println(string(world))
+    println()
+
+    moved = true
+    while moved
+      moved = tick(world)
+      println(string(world))
+      println()
+      readline(stdin)
+    end
   end
 end
 

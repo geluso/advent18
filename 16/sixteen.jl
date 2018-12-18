@@ -7,7 +7,7 @@ mutable struct World
   max_col
 end
 
-World() = World(Dict(), [], 0, 0)
+World() = World(Dict(), Dict(), 0, 0)
 
 mutable struct Actor
   race
@@ -20,18 +20,28 @@ function key(row, col)
   return string(row, ",", col)
 end
 
+function get_tile(world, row, col)
+  key_ = key(row, col)
+
+  actor = get(world.actors, key_, nothing)
+  if actor != nothing
+    return actor.race
+  end
+
+  is_floor = get(world.map, key_, false)
+  if is_floor
+    return '.'
+  else
+    return '#'
+  end
+end
+
 function string(world::World)
   output = ""
   for row in 1:world.max_row
     line = ""
     for col in 1:world.max_col
-      key_ = key(row, col)
-      tile = get(world.map, key_, false)
-      if tile
-        tile = '.'
-      else
-        tile = '#'
-      end
+      tile = get_tile(world, row, col)
       line = string(line, tile)
     end
     output = string(output, line, "\n")
@@ -53,7 +63,7 @@ function build_world(file)
         world.map[key_] = true
         if cc in "GE"
           actor = Actor(cc, 200, row, col)
-          push!(world.actors, actor)
+          world.actors[key_] = actor
         end
       end
       col += 1

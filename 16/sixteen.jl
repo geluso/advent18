@@ -72,7 +72,6 @@ end
 function get_targets(world, race)
   targets = Dict()
   for actor in values(world.actors)
-    println(actor)
     if actor.race == race
       add_target(world, targets, actor.row - 1, actor.col)
       add_target(world, targets, actor.row, actor.col - 1)

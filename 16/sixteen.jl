@@ -142,13 +142,21 @@ function main()
     println()
 
     moved = true
+    ticks = 0
     while moved
       moved = tick(world)
-      targets = elf_targets(world)
+      targets = nothing
+      if ticks % 2 == 0
+        targets = elf_targets(world)
+      else
+        targets = goblin_targets(world)
+      end
 
       println(string(world, targets))
       println()
       readline(stdin)
+
+      ticks += 1
     end
   end
 end
